@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Style & Size Preferences</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --accent: #6C63FF;
+      --accent-light: #EEEdFF;
+      --bg: #F7F7FB;
+      --card: #FFFFFF;
+      --text: #1A1A2E;
+      --secondary: #6B7280;
+      --border: #E5E7EB;
+      --success: #10B981;
+      --error: #EF4444;
+      --radius: 14px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 32px 0 24px;
+    }
+
+    .header .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--secondary);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .header .name-badge {
+      display: inline-block;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 15px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--secondary);
+      margin-bottom: 14px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field-row:last-child { border-bottom: none; }
+
+    .field-label {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    select {
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      min-width: 130px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+      cursor: pointer;
+    }
+
+    select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+    textarea {
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+    textarea::placeholder { color: var(--secondary); }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.15s;
+    }
+
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .state-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 60vh;
+      gap: 16px;
+    }
+
+    .state-screen .icon { font-size: 56px; }
+    .state-screen h2 { font-size: 22px; font-weight: 700; }
+    .state-screen p { color: var(--secondary); font-size: 15px; line-height: 1.5; max-width: 300px; }
+
+    #loading-screen, #success-screen, #error-screen, #expired-screen { display: none; }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Loading -->
+  <div id="loading-screen" class="state-screen">
+    <div class="spinner"></div>
+    <p>Loading your form...</p>
+  </div>
+
+  <!-- Success -->
+  <div id="success-screen" class="state-screen">
+    <div class="icon">🎉</div>
+    <h2>All done!</h2>
+    <p>Your style and size preferences have been saved. You can close this page.</p>
+  </div>
+
+  <!-- Expired -->
+  <div id="expired-screen" class="state-screen">
+    <div class="icon">⏰</div>
+    <h2>Link expired</h2>
+    <p>This request link is no longer active. Ask the person who sent it to send a new one.</p>
+  </div>
+
+  <!-- Error -->
+  <div id="error-screen" class="state-screen">
+    <div class="icon">⚠️</div>
+    <h2>Something went wrong</h2>
+    <p id="error-message">Unable to load this form. Please try again later.</p>
+  </div>
+
+  <!-- Form -->
+  <div id="form-screen" style="display:none">
+    <div class="header">
+      <div class="icon">🎁</div>
+      <h1>Style & Size Preferences</h1>
+      <p>
+        <span class="name-badge" id="person-name-badge">Someone</span>
+        is planning a gift and would love to know your style preferences.
+        This takes about a minute!
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">About You</div>
+      <div class="field-row">
+        <span class="field-label">Gender</span>
+        <select id="gender">
+          <option value="Unspecified">Prefer not to say</option>
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Size Region</span>
+        <select id="clothing-region">
+          <option value="US">US</option>
+          <option value="UK">UK</option>
+          <option value="EU">EU</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Clothing Sizes</div>
+      <div class="field-row">
+        <span class="field-label">Top / Shirt</span>
+        <select id="shirt-size"><option value="">— Select —</option></select>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Bottom / Pants</span>
+        <select id="pants-size"><option value="">— Select —</option></select>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Shoes</span>
+        <select id="shoe-size"><option value="">— Select —</option></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interests & Wishlist</div>
+      <textarea
+        id="interests"
+        placeholder="e.g. hiking gear, coffee, thriller novels, blue colours, cooking gadgets...&#10;&#10;One item per line works great!"
+      ></textarea>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+      Save My Preferences
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ─── Supabase config (anon key only — RLS enforces read/write rules) ───────────
+const SUPABASE_URL  = "https://vroyzmhhbogejquubyzn.supabase.co";
+const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyb3l6bWhoYm9nZWpxdXVieXpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyODE3MjcsImV4cCI6MjA5MTg1NzcyN30.xnY-I2FG0AX93LCG1_11Xpc4lSjDV7WAbhWrZQsZ_-U";
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ─── Size data (mirrors SizeHelpers.swift) ────────────────────────────────────
+const sizes = {
+  top: {
+    Female: { US: ["XXS (0)","XS (2)","S (4)","M (6)","L (8)","XL (10)","XXL (12)"],
+              UK: ["4","6","8","10","12","14","16","18"],
+              EU: ["32","34","36","38","40","42","44","46"] },
+    Male:   { US: ["XS","S","M","L","XL","XXL","3XL"],
+              UK: ["XS","S","M","L","XL","XXL","3XL"],
+              EU: ["XS","S","M","L","XL","XXL","3XL"] },
+    Unspecified: { US: ["XS","S","M","L","XL","XXL"],
+                   UK: ["XS","S","M","L","XL","XXL"],
+                   EU: ["XS","S","M","L","XL","XXL"] }
+  },
+  bottom: {
+    Female: { US: ["0","2","4","6","8","10","12","14","16"],
+              UK: ["4","6","8","10","12","14","16","18","20"],
+              EU: ["32","34","36","38","40","42","44","46","48"] },
+    Male:   { US: range(28,44).map(n => n+'"'),
+              UK: range(28,44).map(n => n+'"'),
+              EU: rangeStep(44,60,2).map(String) },
+    Unspecified: { US: ["S","M","L","XL"],
+                   UK: ["S","M","L","XL"],
+                   EU: ["S","M","L","XL"] }
+  },
+  shoe: {
+    Female: { US: rangeHalf(4,12).map(String),
+              UK: rangeHalf(2,10).map(String),
+              EU: range(35,45).map(String) },
+    Male:   { US: rangeHalf(6,16).map(String),
+              UK: rangeHalf(5,15).map(String),
+              EU: range(39,49).map(String) },
+    Unspecified: { US: range(35,46).map(String),
+                   UK: range(35,46).map(String),
+                   EU: range(35,46).map(String) }
+  }
+};
+
+function range(from, to) {
+  const r = [];
+  for (let i = from; i <= to; i++) r.push(i);
+  return r;
+}
+function rangeStep(from, to, step) {
+  const r = [];
+  for (let i = from; i <= to; i += step) r.push(i);
+  return r;
+}
+function rangeHalf(from, to) {
+  const r = [];
+  for (let i = from * 2; i <= to * 2; i++) r.push(i / 2);
+  return r;
+}
+
+// ─── DOM helpers ──────────────────────────────────────────────────────────────
+function show(id) { document.getElementById(id).style.display = ""; }
+function hide(id) { document.getElementById(id).style.display = "none"; }
+
+function populateSelect(id, options) {
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Select —</option>';
+  options.forEach(o => {
+    const opt = document.createElement("option");
+    opt.value = o; opt.textContent = o;
+    sel.appendChild(opt);
+  });
+  if (options.includes(current)) sel.value = current;
+}
+
+function updateSizeOptions() {
+  const gender = document.getElementById("gender").value;
+  const region = document.getElementById("clothing-region").value;
+  const g = sizes.top[gender]   ? gender   : "Unspecified";
+  const r = sizes.top[g][region] ? region  : "US";
+  populateSelect("shirt-size", sizes.top[g][r]);
+  populateSelect("pants-size", sizes.bottom[g][r]);
+  populateSelect("shoe-size",  sizes.shoe[g][r]);
+}
+
+document.getElementById("gender").addEventListener("change", updateSizeOptions);
+document.getElementById("clothing-region").addEventListener("change", updateSizeOptions);
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+const token = new URLSearchParams(window.location.search).get("token");
+
+async function init() {
+  show("loading-screen");
+
+  if (!token) {
+    hide("loading-screen");
+    document.getElementById("error-message").textContent = "No request token found in the link.";
+    show("error-screen");
+    return;
+  }
+
+  try {
+    const { data, error } = await db
+      .from("profile_requests")
+      .select("person_name, status")
+      .eq("id", token)
+      .single();
+
+    hide("loading-screen");
+
+    if (error || !data) {
+      show("expired-screen");
+      return;
+    }
+
+    if (data.status === "completed") {
+      show("success-screen");
+      return;
+    }
+
+    // Show form personalised with the person's name
+    document.getElementById("person-name-badge").textContent = data.person_name;
+    updateSizeOptions();
+    show("form-screen");
+
+  } catch (e) {
+    hide("loading-screen");
+    document.getElementById("error-message").textContent = e.message || "Unexpected error.";
+    show("error-screen");
+  }
+}
+
+// ─── Submit ───────────────────────────────────────────────────────────────────
+async function submitForm() {
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  const rawInterests = document.getElementById("interests").value;
+  const interests = rawInterests
+    .split("\n")
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+
+  const payload = {
+    status: "completed",
+    gender: document.getElementById("gender").value,
+    clothing_region: document.getElementById("clothing-region").value,
+    shirt_size: document.getElementById("shirt-size").value,
+    pants_size: document.getElementById("pants-size").value,
+    shoe_size: document.getElementById("shoe-size").value,
+    interests: interests
+  };
+
+  try {
+    const { error } = await db
+      .from("profile_requests")
+      .update(payload)
+      .eq("id", token)
+      .eq("status", "pending"); // Safety: can only submit once
+
+    if (error) throw error;
+
+    hide("form-screen");
+    show("success-screen");
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "Save My Preferences";
+    alert("Something went wrong: " + (e.message || "Please try again."));
+  }
+}
+
+init();
+</script>
+</body>
+</html>
