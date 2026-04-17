@@ -171,7 +171,7 @@
     .state-screen h2 { font-size: 22px; font-weight: 700; }
     .state-screen p { color: var(--secondary); font-size: 15px; line-height: 1.5; max-width: 300px; }
 
-    #loading-screen, #success-screen, #error-screen, #expired-screen { display: none; }
+    /* State screens are hidden via inline style so that show() can reveal them by clearing it. */
 
     .spinner {
       width: 36px; height: 36px;
@@ -188,27 +188,27 @@
 <div class="container">
 
   <!-- Loading -->
-  <div id="loading-screen" class="state-screen">
+  <div id="loading-screen" class="state-screen" style="display:none">
     <div class="spinner"></div>
     <p>Loading your form...</p>
   </div>
 
   <!-- Success -->
-  <div id="success-screen" class="state-screen">
+  <div id="success-screen" class="state-screen" style="display:none">
     <div class="icon">🎉</div>
     <h2>All done!</h2>
     <p>Your style and size preferences have been saved. You can close this page.</p>
   </div>
 
   <!-- Expired -->
-  <div id="expired-screen" class="state-screen">
+  <div id="expired-screen" class="state-screen" style="display:none">
     <div class="icon">⏰</div>
     <h2>Link expired</h2>
     <p>This request link is no longer active. Ask the person who sent it to send a new one.</p>
   </div>
 
   <!-- Error -->
-  <div id="error-screen" class="state-screen">
+  <div id="error-screen" class="state-screen" style="display:none">
     <div class="icon">⚠️</div>
     <h2>Something went wrong</h2>
     <p id="error-message">Unable to load this form. Please try again later.</p>
